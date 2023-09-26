@@ -4,10 +4,31 @@ import { StatusBar } from "expo-status-bar";
 import { LinearGradient } from "expo-linear-gradient";
 import { useState } from "react";
 import GameScreen from "./screens/GameScreen";
+import GameOver from "./screens/GameOverScreen";
+import { useFonts } from "expo-font";
+import AppLoading from "expo-app-loading";
 
 export default function App() {
   const [useNumber, setUseNumber] = useState(null);
+  const [gameOver, setGameOver] = useState(false);
+  const [rounds, setRounds] = useState(0);
 
+  const [fontsLoaded] = useFonts({
+    "open-sans": require("./assets/OpenSans-Regular.ttf"),
+    "open-sans-bold": require("./assets/OpenSans-Bold.ttf"),
+  });
+
+  if (!fontsLoaded) {
+    return <AppLoading />;
+  }
+  const cleanup = () => {
+    setGameOver(false);
+    setUseNumber(null);
+    setRounds(0);
+  };
+  const incrementRound = () => {
+    setRounds((round) => round + 1);
+  };
   const pickedNumberHandler = (pickedNumber) => {
     setUseNumber(pickedNumber);
   };
@@ -19,7 +40,23 @@ export default function App() {
   );
 
   if (useNumber) {
-    screen = <GameScreen></GameScreen>;
+    screen = (
+      <GameScreen
+        incrementRound={incrementRound}
+        userNumber={useNumber}
+        finishGame={() => setGameOver(true)}
+      ></GameScreen>
+    );
+  }
+
+  if (gameOver) {
+    screen = (
+      <GameOver
+        startNewGame={cleanup}
+        rounds={rounds}
+        userNumber={useNumber}
+      ></GameOver>
+    );
   }
 
   return (
@@ -32,7 +69,7 @@ export default function App() {
           style={styles.container}
           imageStyle={styles.backgroundImage}
         >
-          <SafeAreaView styles={styles.container}>{screen}</SafeAreaView>
+          <SafeAreaView style={styles.container}>{screen}</SafeAreaView>
         </ImageBackground>
       </LinearGradient>
     </>
